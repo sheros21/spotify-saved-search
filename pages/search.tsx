@@ -92,34 +92,43 @@ function SearchPage(){
     //
     //
     //
-    function parseTrackData(data: any) {
-      console.log("parsing data");
-      console.log(data);
-    
-      if (Array.isArray(data)) {
-        data.forEach((item: any) => {
-          const { name } = item.track;
-          const { genres, images } = item.track.album;
-    
-          // Check if the item already exists in userData
-          const isDuplicate = userData.some((existingItem) => existingItem.name === name);
-    
-          // Add the item to userData if it's not a duplicate
-          if (!isDuplicate) {
-            const newItem = {
-              name,
-              images,
-              genres,
-              type: 'track'
-            };
-    
-            setUserData((prevData) => [...prevData, newItem]);
-          }
-        });
-      } else {
-        console.log("Invalid data format. Expected an array.");
-      }
-    }
+   function parseTrackData(data: any) {
+  console.log("parsing track data");
+  console.log(data);
+
+  if (Array.isArray(data)) {
+    const newItems = data.map((item: any) => {
+      const { name } = item.track;
+      const { genres, images } = item.track.album;
+
+      return {
+        name,
+        images,
+        genres,
+        type: 'track'
+      };
+    });
+
+    setUserData((prevData) => {
+      const updatedData = [...prevData];
+      newItems.forEach((newItem) => {
+        // Check if the item already exists in userData
+        const isDuplicate = updatedData.some(
+          (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+        );
+
+        // Add the item to userData if it's not a duplicate
+        if (!isDuplicate) {
+          updatedData.push(newItem);
+        }
+      });
+      return updatedData;
+    });
+  } else {
+    console.log("Invalid data format. Expected an array.");
+  }
+}
+
     
     
     function parseAlbumData(data: any) {
@@ -338,6 +347,7 @@ function SearchPage(){
     return(
       <div>
           {/* add form instead of div for auto refresh? */}
+          {/*  */}
       <div
       className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
       // onSubmit={search}
@@ -369,7 +379,7 @@ function SearchPage(){
             <h3 className="text-gray-600">{item.name}</h3>
             <p className="text-gray-600">{item.genres}</p>
             <p className="text-gray-600">{item.type}</p>
-            <img src={item.images[0]} alt={item.name} className="w-20 h-20 mt-2" />
+            <img src={item.images[0].url} alt={item.name} className="w-20 h-20 mt-2" />
           </div>
         ))}
       </div>
