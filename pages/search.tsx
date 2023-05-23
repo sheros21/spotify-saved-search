@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from "axios";
+// import axios from "axios";
 
 
 //TODO hide these in local storage, update gitignore
@@ -37,29 +37,55 @@ function SearchPage(){
             
     }, [])
 
-    // const handleSubmit = (event) => {
-    //     //event.preventDefault(); // not sure if this is necessary
-    //     console.log(searchParam); 
-    //   };
 
     // serach [] needs to be async since we're gonna have a lot of fetch statements
+    const handleGetSaved = () => {
+      console.log("in handleGetSaved")
+
+      var getParams = {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken
+        }
+    }
+
+
+      fetch("https://api.spotify.com/v1/me/tracks", getParams)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          setUserData(data);
+          console.log("userData:");
+          console.log(userData);
+        })
+        .catch(error => {
+          console.log("error");
+          console.log(error);
+        });
+    };
+    
 
     //TODO: make this async?
-    const handleGetSaved = () => {
-        axios
-            .get("https://api.spotify.com/v1/me/tracks", {
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken,
-                },
-            })
-            .then((response : any) => {
-                setUserData(response.data);
-                console.log(userData);
-            })
-            .catch((error : any) => {
-                console.log(error);
-            });
-    };
+    // const handleGetSaved = () => {
+    //     axios
+    //         .get("https://api.spotify.com/v1/me/tracks", {
+    //             headers: {
+    //                 'Authorization': 'Bearer ' + accessToken,
+    //             },
+    //         })
+    //         .then((response : any) => {
+    //             setUserData(response.data);
+    //             console.log(userData);
+    //         })
+    //         .catch((error : any) => {
+    //             console.log(error);
+    //         });
+    // };
+
 
     // async function getSaved() {
     //     console.log(accessToken);
