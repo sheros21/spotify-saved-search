@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-// import axios from "axios";
+import axios from "axios";
 
+
+
+//TODO add is loading 
 
 //TODO hide these in local storage, update gitignore
 const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
@@ -13,60 +16,125 @@ function SearchPage(){
     const [searchParam, setSearchParam] = useState("");
     const [userData, setUserData] = useState({});
 
-    const handleSearchChange = (event) => {
+    const handleSearchChange = (event: any) => {
         setSearchParam(event.target.value);
         console.log(searchParam);
       };
 
+
+
+    const getReturnedParamsFromSpotifyAuth = (hash : any) => {
+      const stringAfterHashtag = hash.substring(1);
+      const paramsInUrl = stringAfterHashtag.split("&");
+      const paramsSplitUp = paramsInUrl.reduce((accumulater : any, currentValue : any) => {
+        // console.log(currentValue);
+        const [key, value] = currentValue.split("=");
+        accumulater[key] = value;
+        return accumulater;
+      }, {});
+    
+      return paramsSplitUp;
+    };
+    
     useEffect(() => {
-        // API access Token (running twice in dev mode but should be expected..?)
-        var authParams = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'grant_type=client_credentials&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET
+      console.log("a")
+      if (window.location.hash) {
+        const { access_token, expires_in, token_type } =
+          getReturnedParamsFromSpotifyAuth(window.location.hash);
+          console.log("token:");
+          console.log(access_token);
+          setAccessToken(access_token);
+          console.log(accessToken);
         }
-        // TODO add error handling for fetch later
-        fetch('https://accounts.spotify.com/api/token', authParams)
-            .then(result => result.json())
-            .then(data => setAccessToken(data.access_token))
-        
-        // call to retrieve all saved data
-        handleGetSaved();
-            
-    }, [])
-
-
-    // serach [] needs to be async since we're gonna have a lot of fetch statements
-    const handleGetSaved = () => {
-      console.log("in handleGetSaved")
-
-      var getParams = {
+        getSaved(); 
+      }, []);
+    
+    async function getSaved() {
+      console.log("in get saved");
+      console.log(accessToken);
+      var params = {
         method: 'GET',
         headers: {
-          'Authorization': 'Bearer ' + accessToken
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
         }
+      };
+    
+      try {
+        var savedTracks = await fetch("https://api.spotify.com/v1/me/tracks", params)
+        var savedAlbums = await fetch("https://api.spotify.com/v1/me/albums", params)
+        var savedEpisodes = await fetch("https://api.spotify.com/v1/me/episodes", params)
+          .then(response => response.json());
+        console.log(savedTracks);
+      } catch (error) {
+        console.log(error);
+      }
     }
 
+    
+    // useEffect(() => {
+    //     // API access Token (running twice in dev mode but should be expected..?)
+    //     var authParams = {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/x-www-form-urlencoded'
+    //         },
+    //         body: 'grant_type=client_credentials&client_id=' + CLIENT_ID + '&client_secret=' + CLIENT_SECRET
+    //     }
+    //     // TODO add error handling for fetch later
+    //     fetch('https://accounts.spotify.com/api/token', authParams)
+    //         .then(result => result.json())
+    //         .then(data => setAccessToken(data.access_token))
+        
+    //     // call to retrieve all saved data
+    //     getSaved();
+            
+    // }, [])
 
-      fetch("https://api.spotify.com/v1/me/tracks", getParams)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          setUserData(data);
-          console.log("userData:");
-          console.log(userData);
-        })
-        .catch(error => {
-          console.log("error");
-          console.log(error);
-        });
-    };
+
+    async function searchArtists() {
+      console.log("in search artists")
+      console.log(accessToken)
+      var params = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'applications/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+      var artistID = await fetch('https://api.spotify.com/v1/search?q=' + searchParam + '&type=artist', params)
+        .then(response => response.json())
+        .then(data => console.log(data))
+    }
+//    serach [] needs to be async since we're gonna have a lot of fetch statements
+    // const handleGetSaved = () => {
+    //   console.log("in handleGetSaved")
+
+    //   var getParams = {
+    //     method: 'GET',
+    //     headers: {
+    //       'Authorization': `Bearer ${accessToken}`
+    //     }
+    // }
+
+
+    //   fetch("https://api.spotify.com/v1/me/tracks", getParams)
+    //     .then(response => {
+    //       if (!response.ok) {
+    //         throw new Error('Network response was not ok');
+    //       }
+    //       return response.json();
+    //     })
+    //     .then(data => {
+    //       setUserData(data);
+    //       console.log("userData:");
+    //       console.log(userData);
+    //     })
+    //     .catch(error => {
+    //       console.log("error");
+    //       console.log(error);
+    //     });
+    // };
     
 
     //TODO: make this async?

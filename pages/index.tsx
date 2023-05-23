@@ -1,2 +1,2 @@
-import SearchPage from "./search";
-export default SearchPage;
+import LoginPage from "./login";
+export default LoginPage;

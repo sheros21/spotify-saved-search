@@ -1,8 +1,26 @@
-// import { useState } from 'react';
+import { access } from 'fs';
+import { useState, useEffect} from 'react';
 
-// function LoginPage(){
 
 
+
+function LoginPage(){
+//TODO hide these in local storage, update gitignore
+const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
+const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
+
+const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
+const REDIRECT_URL = "http://localhost:3000/search";
+const SPACE_DELIMITER = "%20";
+const SCOPES = ["user-library-read"];
+const SCOPES_URL_PARAM = SCOPES.join(SPACE_DELIMITER);
+
+
+
+const handleLogin = () => {
+    window.location = `${SPOTIFY_AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL}&scope=${SCOPES_URL_PARAM}&response_type=token&show_dialog=true` as any;
+};
+  
     
 
 //     const [username, setUsername] = useState('');
@@ -24,7 +42,8 @@
 //       console.log(password);
 
 //     };
-//     return(
+    return(
+        <button onClick={handleLogin}>login to spotify</button>
 //         <div>
 //       <form
 //         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
@@ -66,8 +85,7 @@
 //         </div>
 //       </form>
 //     </div>
-//     );
-// }
+    );
+}
 
-// export default LoginPage;
-
+export default LoginPage;
