@@ -36,19 +36,40 @@ function SearchPage(){
       return paramsSplitUp;
     };
     
+    async function fetchSavedData(accessToken) {
+      try {
+        const params = {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        };
+    
+        const response = await fetch("https://api.spotify.com/v1/me/tracks", params);
+        const data = await response.json();
+    
+        // Process the retrieved data here
+        parseData(data.items);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    
     useEffect(() => {
-      console.log("a")
-      if (window.location.hash) {
-        const { access_token, expires_in, token_type } =
-          getReturnedParamsFromSpotifyAuth(window.location.hash);
-          console.log("token:");
-          console.log(access_token);
+      const storedAccessToken = localStorage.getItem('accessToken');
+      if (storedAccessToken) {
+        setAccessToken(storedAccessToken);
+        fetchSavedData(storedAccessToken);
+      } else {
+        if (window.location.hash) {
+          const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
           setAccessToken(access_token);
-          console.log(accessToken);
+          localStorage.setItem('accessToken', access_token);
+          fetchSavedData(access_token);
         }
-        getSaved(); 
-      }, []);
-
+      }
+    }, []);
 
       function parseData(data: any) {
         console.log("parsing data");
