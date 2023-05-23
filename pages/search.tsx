@@ -12,9 +12,12 @@ const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
 
 function SearchPage(){
 
+  
+
     const [accessToken, setAccessToken] = useState("");
     const [searchParam, setSearchParam] = useState("");
-    const [userData, setUserData] = useState({});
+    const [userData, setUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
+
 
     const handleSearchChange = (event: any) => {
         setSearchParam(event.target.value);
@@ -36,7 +39,7 @@ function SearchPage(){
       return paramsSplitUp;
     };
     
-    async function fetchSavedData(accessToken) {
+    async function fetchSavedData(accessToken: any) {
       try {
         const params = {
           method: 'GET',
@@ -46,13 +49,28 @@ function SearchPage(){
           }
         };
     
+        // Clear userData before adding new data
+        setUserData([]);
+    
+        // Parsing for tracks
         const response = await fetch("https://api.spotify.com/v1/me/tracks", params);
         const data = await response.json();
-    
         // Process the retrieved data here
-        parseData(data.items);
+        parseTrackData(data.items);
+    
+        const albumResponse = await fetch("https://api.spotify.com/v1/me/albums", params);
+        const albumData = await albumResponse.json();
+        parseAlbumData(albumData.items);
+    
+        const episodeResponse = await fetch("https://api.spotify.com/v1/me/episodes", params);
+        const episodeData = await episodeResponse.json();
+        console.log(episodeData);
+        parseEpisodeData(episodeData.items);
+
+        console.log("userdata:");
+        console.log(userData);
       } catch (error) {
-        console.log(error);
+        console.log(error); 
       }
     }
     
@@ -70,27 +88,96 @@ function SearchPage(){
         }
       }
     }, []);
-
-      function parseData(data: any) {
-        console.log("parsing data");
-        console.log(data);
-        
-        if (Array.isArray(data)) {
-          data.map(item => {
-            const { name } = item.track;
-            const {genres, images} = item.track.album
-            const newData = {
+    //
+    //
+    //
+    //
+    function parseTrackData(data: any) {
+      console.log("parsing data");
+      console.log(data);
+    
+      if (Array.isArray(data)) {
+        data.forEach((item: any) => {
+          const { name } = item.track;
+          const { genres, images } = item.track.album;
+    
+          // Check if the item already exists in userData
+          const isDuplicate = userData.some((existingItem) => existingItem.name === name);
+    
+          // Add the item to userData if it's not a duplicate
+          if (!isDuplicate) {
+            const newItem = {
               name,
               images,
               genres,
               type: 'track'
             };
-            console.log(newData);
-          });
-        } else {
-          console.log("Invalid data format. Expected an array.");
-        }
+    
+            setUserData((prevData) => [...prevData, newItem]);
+          }
+        });
+      } else {
+        console.log("Invalid data format. Expected an array.");
       }
+    }
+    
+    
+    function parseAlbumData(data: any) {
+      console.log("parsing data");
+      console.log(data);
+    
+      if (Array.isArray(data)) {
+        data.forEach((item: any) => {
+          const { name, genres, images } = item.album;
+    
+          // Check if the item already exists in userData
+          const isDuplicate = userData.some((existingItem) => existingItem.name === name);
+    
+          // Add the item to userData if it's not a duplicate
+          if (!isDuplicate) {
+            const newItem = {
+              name,
+              images,
+              genres,
+              type: 'album'
+            };
+    
+            setUserData((prevData: any) => [...prevData, newItem]);
+          }
+        });
+      } else {
+        console.log("Invalid data format. Expected an array.");
+      }
+    }
+
+    function parseEpisodeData(data: any) {
+      console.log("parsing data");
+      console.log(data);
+    
+      if (Array.isArray(data)) {
+        data.forEach((item: any) => {
+          const { name, genres, images } = item.episode;
+    
+          // Check if the item already exists in userData
+          const isDuplicate = userData.some((existingItem) => existingItem.name === name);
+    
+          // Add the item to userData if it's not a duplicate
+          if (!isDuplicate) {
+            const newItem = {
+              name,
+              images,
+              genres,
+              type: 'episode'
+            };
+    
+            setUserData((prevData: any) => [...prevData, newItem]);
+          }
+        });
+      } else {
+        console.log("Invalid data format. Expected an array.");
+      }
+    }
+    //
       
   
     async function getSaved() {
@@ -110,7 +197,19 @@ function SearchPage(){
           .then(response => response.json())
           .then(data => {
                 console.log(data.items);
-                parseData(data.items);
+                parseTrackData(data.items);
+          })
+          var savedAlbums = await fetch("https://api.spotify.com/v1/me/albums", params)
+          .then(response => response.json())
+          .then(data => {
+                console.log(data.items);
+                parseAlbumData(data.items);
+          })
+          var savedEpisodes = await fetch("https://api.spotify.com/v1/me/episodes", params)
+          .then(response => response.json())
+          .then(data => {
+                console.log(data.items);
+                // parseEpisodeData(data.items);
           })
         // var savedAlbums = await fetch("https://api.spotify.com/v1/me/albums", params)
         // var savedEpisodes = await fetch("https://api.spotify.com/v1/me/episodes", params)
