@@ -48,7 +48,30 @@ function SearchPage(){
         }
         getSaved(); 
       }, []);
-    
+
+
+      function parseData(data: any) {
+        console.log("parsing data");
+        console.log(data);
+        
+        if (Array.isArray(data)) {
+          data.map(item => {
+            const { name } = item.track;
+            const {genres, images} = item.track.album
+            const newData = {
+              name,
+              images,
+              genres,
+              type: 'track'
+            };
+            console.log(newData);
+          });
+        } else {
+          console.log("Invalid data format. Expected an array.");
+        }
+      }
+      
+  
     async function getSaved() {
       console.log("in get saved");
       console.log(accessToken);
@@ -56,22 +79,32 @@ function SearchPage(){
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          // 'Authorization': `Bearer ${accessToken}`
+          'Authorization': 'Bearer ' + accessToken
         }
       };
     
       try {
         var savedTracks = await fetch("https://api.spotify.com/v1/me/tracks", params)
-        var savedAlbums = await fetch("https://api.spotify.com/v1/me/albums", params)
-        var savedEpisodes = await fetch("https://api.spotify.com/v1/me/episodes", params)
-          .then(response => response.json());
-        console.log(savedTracks);
+          .then(response => response.json())
+          .then(data => {
+                console.log(data.items);
+                parseData(data.items);
+          })
+        // var savedAlbums = await fetch("https://api.spotify.com/v1/me/albums", params)
+        // var savedEpisodes = await fetch("https://api.spotify.com/v1/me/episodes", params)
+
       } catch (error) {
         console.log(error);
       }
     }
 
+
+
     
+      // var trackArray = savedTracks.map(item => ({ track: item.track }));
+      // console.log(trackArray);
+
     // useEffect(() => {
     //     // API access Token (running twice in dev mode but should be expected..?)
     //     var authParams = {
