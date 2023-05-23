@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
+import axios from "axios";
 
-const CLIENT_ID = "a";
-const CLIENT_SECRET = "a";
+
+//TODO hide these in local storage, update gitignore
+const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
+const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
+
 
 function SearchPage(){
 
-    const [acessToken, setAccessToken] = useState("");
+    const [accessToken, setAccessToken] = useState("");
     const [searchParam, setSearchParam] = useState("");
-
+    const [userData, setUserData] = useState({});
 
     const handleSearchChange = (event) => {
         setSearchParam(event.target.value);
@@ -26,7 +30,10 @@ function SearchPage(){
         // TODO add error handling for fetch later
         fetch('https://accounts.spotify.com/api/token', authParams)
             .then(result => result.json())
-            .then(data => setAccessToken(data.acess_token))
+            .then(data => setAccessToken(data.access_token))
+        
+        // call to retrieve all saved data
+        handleGetSaved();
             
     }, [])
 
@@ -36,14 +43,47 @@ function SearchPage(){
     //   };
 
     // serach [] needs to be async since we're gonna have a lot of fetch statements
-    async function search(){
-        
-        console.log("searching for " + searchParam);
 
-        // get request using search to get the saved tracks
-        var savedTracks = await fetch("https://api.spotify.com/v1/me/tracks")
-        var savedAlbums = await fetch("https://api.spotify.com/v1/me/tracks")
-        var savedTracks = await fetch("https://api.spotify.com/v1/me/episodes")
+    //TODO: make this async?
+    const handleGetSaved = () => {
+        axios
+            .get("https://api.spotify.com/v1/me/tracks", {
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken,
+                },
+            })
+            .then((response : any) => {
+                setUserData(response.data);
+                console.log(userData);
+            })
+            .catch((error : any) => {
+                console.log(error);
+            });
+    };
+
+    // async function getSaved() {
+    //     console.log(accessToken);
+    //     var savedSearchParams = {
+    //       method: 'GET',
+    //       headers: {
+    //         // 'Content-Type': 'application/json',
+    //         'Authorization': 'Bearer ' + accessToken
+    //       }
+    //     };
+      
+    //     // get request to retrieve saved tracks
+    //     try {
+    //       const response = await fetch("https://api.spotify.com/v1/me/tracks", savedSearchParams);
+    //       const data = await response.json();
+    //       console.log(data);
+    //     } catch (error) {
+    //       console.error(error);
+    //     }
+    //   }
+    
+    // string matching/search handler
+    async function search(){
+        console.log("searching for " + searchParam);      
     }
 
 
