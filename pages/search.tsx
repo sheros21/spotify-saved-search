@@ -7,19 +7,54 @@ import { useEffect, useState } from 'react';
 const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
 const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
 
+// interface UserItem {
+//   name: string;
+//   artist?: string;
+//   images: any;
+//   genres: any;
+//   type: string;
+// }
+
+// Define UserItem interface for better type checking
+interface UserItem {
+  name: string;
+  artist: string;
+  images: any;
+  genres: any;
+  type: string;
+}
+
 
 function SearchPage(){
     const [accessToken, setAccessToken] = useState("");
-    const [filteredUserData, setFilteredUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
+    const [filteredUserData, setFilteredUserData] = useState<UserItem[]>([]);
     const [searchParam, setSearchParam] = useState("");
-    const [userData, setUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
+    const [userData, setUserData] = useState<UserItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    useEffect(() => {
+      getAccessToken();
+      fetchSavedData();
+    }, []);
+
+    const getAccessToken = () => {
+      if (window.location.hash) {
+        const { access_token } = getReturnedParamsFromSpotifyAuth(window.location.hash);
+        setAccessToken(access_token);
+        localStorage.setItem('accessToken', access_token);
+      } else {
+        const storedAccessToken = localStorage.getItem('accessToken');
+        if (storedAccessToken) {
+          setAccessToken(storedAccessToken);
+        }
+      }
+    };
+    
+
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const { value } = event.target;
-      setSearchParam(value);
-      
-      const filteredData = userData.filter(item => item.name.toLowerCase().includes(value.toLowerCase()));
+      setSearchParam(event.target.value);
+
+      const filteredData = userData.filter(item => item.name.toLowerCase().includes(searchParam));
       setFilteredUserData(filteredData);
     };
     
@@ -28,206 +63,104 @@ function SearchPage(){
     }, [userData]);
     
   
-    useEffect(() => {
-      const storedAccessToken = localStorage.getItem('accessToken');
-      if (storedAccessToken) {
-        setAccessToken(storedAccessToken);
-      } else {
-        if (window.location.hash) {
-          console.log("window hash");
-          console.log(window.location.hash)
-          const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
-          setAccessToken(access_token);
-          localStorage.setItem('accessToken', access_token);
-        }
-      }
-      console.log("ACCESS TOKEN ON FIRST REFRESH");
-      console.log(accessToken)
-      fetchSavedData();
-      setIsLoading(true);
 
-    }, [accessToken]);
+  const refreshToken = async () => {
+    try {
+      const authParams = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
+      };
+
+      const response = await fetch('https://accounts.spotify.com/api/token', authParams);
+      const data = await response.json();
+      setAccessToken(data.access_token);
+      console.log('access token:', accessToken);
+      // fetchSavedData();
+    } catch (error) {
+      // Handle error here 
+      console.error('Error fetching access token:', error);
+    }
+  };
+
 
 //    fetch the user data from spotify endpoint
-    async function fetchSavedData() {
-      console.log("in fetch data")
-      setIsLoading(true);
-
-      // TODO add expires in functionality from tut
-
-      if (window.location.hash) {
-        const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
-        setAccessToken(access_token);
-        localStorage.setItem('accessToken', access_token);
-      }
-      console.log(accessToken);
-      try {
-        const params = {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          }
-        };
-    
-        // Clear userData before adding new data
-        setUserData([]);
-    
-        // TODO add try catch handling for each fetch statement
-        // TODO add load state until everything is parsed 
-
-        // Parsing for tracks
-        const response = await fetch("https://api.spotify.com/v1/me/tracks", params);
-        const data = await response.json();
-        // Process the retrieved data here
-        console.log(data);
-        parseTrackData(data.items);
-    
-        const albumResponse = await fetch("https://api.spotify.com/v1/me/albums", params);
-        const albumData = await albumResponse.json();
-        parseAlbumData(albumData.items);
-    
-        const episodeResponse = await fetch("https://api.spotify.com/v1/me/episodes", params);
-        const episodeData = await episodeResponse.json();
-        console.log(episodeData);
-        parseEpisodeData(episodeData.items);
-
-        console.log("userdata:");
-        console.log(userData);
-      } catch (error) {
-        console.log("error caught");
-        console.log(error); 
-      }
-      setIsLoading(false);
+const fetchSavedData = async () => {
+  setIsLoading(true);
+  const params = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`
     }
+  };
+  setUserData([]);
+  const endpoints = ["https://api.spotify.com/v1/me/tracks", "https://api.spotify.com/v1/me/albums", "https://api.spotify.com/v1/me/episodes"];
+  const parsers = [parseTrackData, parseAlbumData, parseEpisodeData];
 
-    // parse string to get the access token from spotify
-    const getReturnedParamsFromSpotifyAuth = (hash : any) => {
-      const stringAfterHashtag = hash.substring(1);
-      const paramsInUrl = stringAfterHashtag.split("&");
-      const paramsSplitUp = paramsInUrl.reduce((accumulater : any, currentValue : any) => {
-        // console.log(currentValue);
-        const [key, value] = currentValue.split("=");
-        accumulater[key] = value;
-        return accumulater;
-      }, {});
-    
-      return paramsSplitUp;
-    };
-
-    function parseTrackData(data: any) {
-      console.log("Parsing track data");
-      console.log(data);
-    
-      if (Array.isArray(data)) {
-        const newItems = data.map((item: any) => {
-          const { name, album, artists } = item.track;
-          const genres = album?.genres || [];
-          const images = album?.images || [];
-    
-          return {
-            name,
-            images,
-            genres,
-            type: 'track'
-          };
-        });
-    
-        setUserData((prevData) => {
-          const updatedData = [...prevData];
-          newItems.forEach((newItem) => {
-            // Check if the item already exists in userData
-            const isDuplicate = updatedData.some(
-              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-            );
-    
-            // Add the item to userData if it's not a duplicate
-            if (!isDuplicate) {
-              updatedData.push(newItem);
-            }
-          });
-          return updatedData;
-        });
-      } else {
-        console.log("Invalid data format. Expected an array.");
-      }
+  for (let i = 0; i < endpoints.length; i++) {
+    try{
+      const response = await fetch(endpoints[i], params);
+      const data = await response.json();
+      parsers[i](data.items);
     }
-    
-    function parseAlbumData(data: any) {
-      console.log("Parsing album data");
-      console.log(data);
-    
-      if (Array.isArray(data)) {
-        const parsedAlbums = data.map((item: any) => {
-          const { name, genres, images } = item.album;
-          return {
-            name,
-            images,
-            genres,
-            type: 'album'
-          };
-        });
-    
-        setUserData((prevData: any) => {
-          const updatedData = [...prevData];
-          parsedAlbums.forEach((newItem) => {
-            // Check if the item already exists in userData
-            const isDuplicate = updatedData.some(
-              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-            );
-    
-            // Add the item to userData if it's not a duplicate
-            if (!isDuplicate) {
-              updatedData.push(newItem);
-            }
-          });
-          return updatedData;
-        });
-      } else {
-        console.log("Invalid data format. Expected an array.");
-      }
+    catch(error){
+      console.log(error);
+      refreshToken(); // TODO call refresh when there's a status 401 or 400 error
     }
+  }
+  setIsLoading(false);
+};
 
-    
-    
-    function parseEpisodeData(data: any) {
-      console.log("Parsing episode data");
-      console.log(data);
-    
-      if (Array.isArray(data)) {
-        const parsedEpisodes = data.map((item: any) => {
-          const { name, genres, images } = item.episode;
-          return {
-            name,
-            images,
-            genres,
-            type: 'episode'
-
-          };
-        });
+const getReturnedParamsFromSpotifyAuth = (hash : string) => {
+  const stringAfterHashtag = hash.substring(1);
+  const paramsInUrl = stringAfterHashtag.split("&");
+  const paramsSplitUp = paramsInUrl.reduce((accumulater : any, currentValue : any) => {
+    const [key, value] = currentValue.split("=");
+    accumulater[key] = value;
+    return accumulater;
+  }, {});
+  return paramsSplitUp;
+};
 
 
-    
-        setUserData((prevData: any) => {
-          const updatedData = [...prevData];
-          parsedEpisodes.forEach((newItem) => {
-            // Check if the item already exists in userData
-            const isDuplicate = updatedData.some(
-              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-            );
-    
-            // Add the item to userData if it's not a duplicate
-            if (!isDuplicate) {
-              updatedData.push(newItem);
-            }
-          });
-          return updatedData;
-        });
-      } else {
-        console.log("Invalid data format. Expected an array.");
-      }
-    }
-    
+const parseData = (data: any, selector: (item: any) => UserItem | null) => {
+  if (Array.isArray(data)) {
+    const newItems = data.map(selector).filter(item => item) as UserItem[];
+    setUserData(prevData => [...prevData, ...newItems]);
+  } else {
+    console.error("Invalid data format. Expected an array.");
+  }
+};
+
+
+const parseTrackData = (data: any) =>
+  parseData(data, (item: any) => {
+    const { name, album, artists } = item.track;
+    const genres = album?.genres || [];
+    const images = album?.images || [];
+    const artist = artists && artists[0]?.name || "";
+    return { name, artist, images, genres, type: 'Song' };
+  });
+
+const parseAlbumData = (data: any) =>
+  parseData(data, (item: any) => {
+    const { name, genres, images, artists } = item.album;
+    const artist = artists[0].name || [];
+    return { name, artist, images, genres, type: 'Album' };
+  });
+
+const parseEpisodeData = (data: any) =>
+  parseData(data, (item: any) => {
+    const { name, genres, images } = item.episode;
+    const artist = "";
+    return { name, artist, images, genres, type: 'Episode' };
+  });
+
+// ...
+
     
     return(
 <div className="black min-h-screen px-8 py-16">
@@ -254,6 +187,7 @@ function SearchPage(){
         <div className="flex flex-col">
           <h3 className="text-white font-bold">{item.name}</h3>
           <p className="text-white">{item.genres}</p>
+          <p className="text-white">{item.artist}</p>
           <p className="text-white">{item.type}</p>
         </div>
       </div>
