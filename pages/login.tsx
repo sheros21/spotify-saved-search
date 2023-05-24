@@ -1,13 +1,13 @@
 function LoginPage(){
     const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
     const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
-    const REDIRECT_URL = "https://spotify-saved-search.vercel.app/search";
+    const REDIRECT_URI = "https://spotify-saved-search.vercel.app/search";
     const SPACE_DELIMITER = "%20";
     const SCOPES = ["user-library-read"];
     const SCOPES_URL_PARAM = SCOPES.join(SPACE_DELIMITER);
 
     const handleLogin = () => {
-        window.location = `${SPOTIFY_AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL}&scope=${SCOPES_URL_PARAM}&response_type=token&show_dialog=true` as any;
+        window.location = `${SPOTIFY_AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES_URL_PARAM}&response_type=token&show_dialog=true` as any;
     };
 
     return (
