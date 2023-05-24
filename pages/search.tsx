@@ -8,9 +8,9 @@ const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
 
 function SearchPage(){
     const [accessToken, setAccessToken] = useState("");
-    const [filteredUserData, setFilteredUserData] = useState<{ name: string; artist: string; images: any; genres: any; type: string; }[]>([]);
+    const [filteredUserData, setFilteredUserData] = useState<{ name: string; artist: string; images: any; genre: any; type: string; }[]>([]);
     const [searchParam, setSearchParam] = useState("");
-    const [userData, setUserData] = useState<{ name: string; artist: string; images: any; genres: any; type: string; }[]>([]);
+    const [userData, setUserData] = useState<{ name: string; artist: string; images: any; genre: any; type: string; }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,7 +137,6 @@ function SearchPage(){
       if (Array.isArray(data)) {
         const parsedTracks = data.map((item: any) => {
           const { name, album, artists } = item.track;
-          const genres = album?.genres || [];
           const images = album?.images || [];
           const artist = artists[0].name
 
@@ -145,7 +144,7 @@ function SearchPage(){
             name,
             artist,
             images,
-            genres,
+            genre: '',
             type: 'Song'
           };
         });
@@ -164,11 +163,12 @@ function SearchPage(){
         const parsedAlbums = data.map((item: any) => {
           const { name, genres, images } = item.album;
           const artist = item.album.artists[0].name;
+          const genre = genres[0];
           return {
             name,
             artist,
             images,
-            genres,
+            genre,
             type: 'Album'
           };
         });
@@ -184,13 +184,13 @@ function SearchPage(){
     
       if (Array.isArray(data)) {
         const parsedEpisodes = data.map((item: any) => {
-        const { name, genres, images } = item.episode;
+        const { name, images } = item.episode;
         const artist = item.episode.show.name
         return {
             name,
             artist,
             images,
-            genres,
+            genre: '',
             type: 'Episode'
 
           };
@@ -227,7 +227,7 @@ function SearchPage(){
         <div className="flex flex-col">
           <h3 className="text-white font-bold">{item.name}</h3>
           <p className="text-white">{item.artist}</p>
-          <p className="text-white">{item.genres}</p>
+          <p className="text-white">{item.genre}</p>
           <p className="text-white">{item.type}</p>
         </div>
       </div>
