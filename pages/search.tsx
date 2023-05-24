@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 
 
-//TODO add is loading 
-
 //TODO hide these in local storage, update gitignore
 const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
 const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
@@ -36,7 +34,7 @@ function SearchPage(){
         if (window.location.hash) {
           console.log("window hash");
           console.log(window.location.hash)
-          const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
+          const { access_token } = getReturnedParamsFromSpotifyAuth(window.location.hash);
           setAccessToken(access_token);
           localStorage.setItem('accessToken', access_token);
         }
@@ -48,15 +46,27 @@ function SearchPage(){
 
     }, [accessToken]);
 
-//    fetch the user data from spotify endpoint
+    // parse string to get the access token from spotify
+    const getReturnedParamsFromSpotifyAuth = (hash : any) => {
+      const stringAfterHashtag = hash.substring(1);
+      const paramsInUrl = stringAfterHashtag.split("&");
+      const paramsSplitUp = paramsInUrl.reduce((accumulater : any, currentValue : any) => {
+        // console.log(currentValue);
+        const [key, value] = currentValue.split("=");
+        accumulater[key] = value;
+        return accumulater;
+      }, {});
+
+      return paramsSplitUp;
+    };
+
+    // fetch the user data from spotify endpoint
     async function fetchSavedData() {
       console.log("in fetch data")
       setIsLoading(true);
 
-      // TODO add expires in functionality from tut
-
       if (window.location.hash) {
-        const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
+        const { access_token} = getReturnedParamsFromSpotifyAuth(window.location.hash);
         setAccessToken(access_token);
         localStorage.setItem('accessToken', access_token);
       }
@@ -101,19 +111,7 @@ function SearchPage(){
       setIsLoading(false);
     }
 
-    // parse string to get the access token from spotify
-    const getReturnedParamsFromSpotifyAuth = (hash : any) => {
-      const stringAfterHashtag = hash.substring(1);
-      const paramsInUrl = stringAfterHashtag.split("&");
-      const paramsSplitUp = paramsInUrl.reduce((accumulater : any, currentValue : any) => {
-        // console.log(currentValue);
-        const [key, value] = currentValue.split("=");
-        accumulater[key] = value;
-        return accumulater;
-      }, {});
-    
-      return paramsSplitUp;
-    };
+   
 
     function parseTrackData(data: any) {
       console.log("Parsing track data");
