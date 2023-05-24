@@ -11,88 +11,17 @@ const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
 
 
 function SearchPage(){
-
-  
-
-    const [accessToken, setAccessToken] = useState("");
-    // const [refreshToken, setRefreshToken] = useState("");
-    const [searchParam, setSearchParam] = useState("");
-    const [userData, setUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
+  const [accessToken, setAccessToken] = useState("");
+  const [searchParam, setSearchParam] = useState("");
+  const [userData, setUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
 
 
-    const handleSearchChange = (event: any) => {
-        setSearchParam(event.target.value);
-        console.log(searchParam);
-      };
+  const handleSearchChange = (event: any) => {
+      setSearchParam(event.target.value);
+      console.log(searchParam);
+    };
   
     
-
-    // // refresh the token upon 401 error
-    // useEffect(() => {
-    //   const getAccessToken = async () => {
-    //     try {
-    //       const authParams = {
-    //         method: 'POST',
-    //         headers: {
-    //           'Content-Type': 'application/x-www-form-urlencoded'
-    //         },
-    //         body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
-    //       };
-  
-    //       const response = await fetch('https://accounts.spotify.com/api/token', authParams);
-    //       const data = await response.json();
-    //       setAccessToken(data.access_token);
-    //       console.log('access token:', accessToken);
-    //       // fetchSavedData();
-    //     } catch (error) {
-    //       // Handle error here 
-    //       console.error('Error fetching access token:', error);
-    //     }
-    //   };
-  
-    //   getAccessToken();
-    // }, []);
-    
-
-    // useEffect(() => {
-    //   const fetchSavedData = async () => {
-    //     try {
-    //       const params = {
-    //         headers: {
-    //           Authorization: `Bearer ${accessToken}`
-    //         }
-    //       };
-  
-    //       const trackResponse = await fetch('https://api.spotify.com/v1/me/tracks', params);
-    //       const trackData = await trackResponse.json();
-    //       parseTrackData(trackData.items);
-  
-    //       const albumResponse = await fetch('https://api.spotify.com/v1/me/albums', params);
-    //       const albumData = await albumResponse.json();
-    //       parseAlbumData(albumData.items);
-  
-    //       const episodeResponse = await fetch('https://api.spotify.com/v1/me/episodes', params);
-    //       const episodeData = await episodeResponse.json();
-    //       parseEpisodeData(episodeData.items);
-    //     } catch (error) {
-    //       console.log(error);
-    //     }
-    //   };
-  
-    //   if (accessToken) {
-    //     fetchSavedData();
-    //   }
-    // }, [accessToken]);
-
-    // function refreshToken(){
-    //   console.log("refreshin?");
-    //   if (window.location.hash) {
-    //     const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
-    //     setAccessToken(access_token);
-    //     localStorage.setItem('accessToken', access_token);
-    //     fetchSavedData();
-    //   }
-    // }
 
     useEffect(() => {
       const storedAccessToken = localStorage.getItem('accessToken');
@@ -223,63 +152,75 @@ function SearchPage(){
 
     
     
-    function parseAlbumData(data: any) {
-      console.log("parsing data");
-      console.log(data);
-    
-      if (Array.isArray(data)) {
-        data.forEach((item: any) => {
-          const { name, genres, images } = item.album;
-    
-          // Check if the item already exists in userData
-          const isDuplicate = userData.some((existingItem) => existingItem.name === name);
-    
-          // Add the item to userData if it's not a duplicate
-          if (!isDuplicate) {
-            const newItem = {
-              name,
-              images,
-              genres,
-              type: 'album'
-            };
-    
-            setUserData((prevData: any) => [...prevData, newItem]);
-          }
-        });
-      } else {
-        console.log("Invalid data format. Expected an array.");
-      }
-    }
+function parseAlbumData(data: any) {
+  console.log("Parsing album data");
+  console.log(data);
 
-    function parseEpisodeData(data: any) {
-      console.log("parsing data");
-      console.log(data);
-    
-      if (Array.isArray(data)) {
-        data.forEach((item: any) => {
-          const { name, genres, images } = item.episode;
-    
-          // Check if the item already exists in userData
-          const isDuplicate = userData.some((existingItem) => existingItem.name === name);
-    
-          // Add the item to userData if it's not a duplicate
-          if (!isDuplicate) {
-            const newItem = {
-              name,
-              images,
-              genres,
-              type: 'episode'
-            };
-    
-            setUserData((prevData: any) => [...prevData, newItem]);
-          }
-        });
-      } else {
-        console.log("Invalid data format. Expected an array.");
-      }
-    }
-    //
-      
+  if (Array.isArray(data)) {
+    const parsedAlbums = data.map((item: any) => {
+      const { name, genres, images } = item.album;
+      return {
+        name,
+        images,
+        genres,
+        type: 'album'
+      };
+    });
+
+    setUserData((prevData: any) => {
+      const updatedData = [...prevData];
+      parsedAlbums.forEach((newItem) => {
+        // Check if the item already exists in userData
+        const isDuplicate = updatedData.some(
+          (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+        );
+
+        // Add the item to userData if it's not a duplicate
+        if (!isDuplicate) {
+          updatedData.push(newItem);
+        }
+      });
+      return updatedData;
+    });
+  } else {
+    console.log("Invalid data format. Expected an array.");
+  }
+}
+
+function parseEpisodeData(data: any) {
+  console.log("Parsing episode data");
+  console.log(data);
+
+  if (Array.isArray(data)) {
+    const parsedEpisodes = data.map((item: any) => {
+      const { name, genres, images } = item.episode;
+      return {
+        name,
+        images,
+        genres,
+        type: 'episode'
+      };
+    });
+
+    setUserData((prevData: any) => {
+      const updatedData = [...prevData];
+      parsedEpisodes.forEach((newItem) => {
+        // Check if the item already exists in userData
+        const isDuplicate = updatedData.some(
+          (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+        );
+
+        // Add the item to userData if it's not a duplicate
+        if (!isDuplicate) {
+          updatedData.push(newItem);
+        }
+      });
+      return updatedData;
+    });
+  } else {
+    console.log("Invalid data format. Expected an array.");
+  }
+}
   
     async function getSaved() {
       console.log("in get saved");
