@@ -27,142 +27,116 @@ function SearchPage(){
   
     
 
-    // // refresh the token upon 401 error
-    // useEffect(() => {
-    //   const getAccessToken = async () => {
-    //     try {
-    //       const authParams = {
-    //         method: 'POST',
-    //         headers: {
-    //           'Content-Type': 'application/x-www-form-urlencoded'
-    //         },
-    //         body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
-    //       };
+    // refresh the token upon 401 error
+    useEffect(() => {
+      const getAccessToken = async () => {
+        try {
+          const authParams = {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
+          };
   
-    //       const response = await fetch('https://accounts.spotify.com/api/token', authParams);
-    //       const data = await response.json();
-    //       setAccessToken(data.access_token);
-    //       console.log('access token:', accessToken);
-    //       // fetchSavedData();
-    //     } catch (error) {
-    //       // Handle error here 
-    //       console.error('Error fetching access token:', error);
-    //     }
-    //   };
+          const response = await fetch('https://accounts.spotify.com/api/token', authParams);
+          const data = await response.json();
+          setAccessToken(data.access_token);
+          console.log('access token:', accessToken);
+          // fetchSavedData();
+        } catch (error) {
+          // Handle error here 
+          console.error('Error fetching access token:', error);
+        }
+      };
   
-    //   getAccessToken();
-    // }, []);
+      getAccessToken();
+    }, []);
     
 
+    useEffect(() => {
+      const fetchSavedData = async () => {
+        try {
+          const params = {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          };
+  
+          const trackResponse = await fetch('https://api.spotify.com/v1/me/tracks', params);
+          const trackData = await trackResponse.json();
+          parseTrackData(trackData.items);
+  
+          const albumResponse = await fetch('https://api.spotify.com/v1/me/albums', params);
+          const albumData = await albumResponse.json();
+          parseAlbumData(albumData.items);
+  
+          const episodeResponse = await fetch('https://api.spotify.com/v1/me/episodes', params);
+          const episodeData = await episodeResponse.json();
+          parseEpisodeData(episodeData.items);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+  
+      if (accessToken) {
+        fetchSavedData();
+      }
+    }, [accessToken]);
+
+
     // useEffect(() => {
-    //   const fetchSavedData = async () => {
-    //     try {
-    //       const params = {
-    //         headers: {
-    //           Authorization: `Bearer ${accessToken}`
-    //         }
-    //       };
-  
-    //       const trackResponse = await fetch('https://api.spotify.com/v1/me/tracks', params);
-    //       const trackData = await trackResponse.json();
-    //       parseTrackData(trackData.items);
-  
-    //       const albumResponse = await fetch('https://api.spotify.com/v1/me/albums', params);
-    //       const albumData = await albumResponse.json();
-    //       parseAlbumData(albumData.items);
-  
-    //       const episodeResponse = await fetch('https://api.spotify.com/v1/me/episodes', params);
-    //       const episodeData = await episodeResponse.json();
-    //       parseEpisodeData(episodeData.items);
-    //     } catch (error) {
-    //       console.log(error);
+    //   const storedAccessToken = localStorage.getItem('accessToken');
+    //   if (storedAccessToken) {
+    //     setAccessToken(storedAccessToken);
+    //     fetchSavedData(storedAccessToken);
+    //   } else {
+    //     if (window.location.hash) {
+    //       const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
+    //       setAccessToken(access_token);
+    //       localStorage.setItem('accessToken', access_token);
+    //       fetchSavedData(access_token);
     //     }
-    //   };
-  
-    //   if (accessToken) {
-    //     fetchSavedData();
     //   }
     // }, [accessToken]);
 
-    // function refreshToken(){
-    //   console.log("refreshin?");
-    //   if (window.location.hash) {
-    //     const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
-    //     setAccessToken(access_token);
-    //     localStorage.setItem('accessToken', access_token);
-    //     fetchSavedData();
+    // fetch the user data from spotify endpoint
+    // async function fetchSavedData() {
+    //   console.log("in fetch data")
+    //   console.log(accessToken);
+    //   try {
+    //     const params = {
+    //       method: 'GET',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //         'Authorization': `Bearer ${accessToken}`
+    //       }
+    //     };
+    
+    //     // Clear userData before adding new data
+    //     setUserData([]);
+    
+    //     // Parsing for tracks
+    //     const response = await fetch("https://api.spotify.com/v1/me/tracks", params);
+    //     const data = await response.json();
+    //     // Process the retrieved data here
+    //     parseTrackData(data.items);
+    
+    //     const albumResponse = await fetch("https://api.spotify.com/v1/me/albums", params);
+    //     const albumData = await albumResponse.json();
+    //     parseAlbumData(albumData.items);
+    
+    //     const episodeResponse = await fetch("https://api.spotify.com/v1/me/episodes", params);
+    //     const episodeData = await episodeResponse.json();
+    //     console.log(episodeData);
+    //     parseEpisodeData(episodeData.items);
+
+    //     console.log("userdata:");
+    //     console.log(userData);
+    //   } catch (error) {
+    //     console.log(error); 
     //   }
     // }
-
-    useEffect(() => {
-      const storedAccessToken = localStorage.getItem('accessToken');
-      if (storedAccessToken) {
-        setAccessToken(storedAccessToken);
-      } else {
-        if (window.location.hash) {
-          console.log("window hash");
-          console.log(window.location.hash)
-          const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
-          setAccessToken(access_token);
-          localStorage.setItem('accessToken', access_token);
-        }
-      }
-      console.log("ACCESS TOKEN ON FIRST REFRESH");
-      console.log(accessToken)
-      fetchSavedData();
-
-    }, [accessToken]);
-
-//    fetch the user data from spotify endpoint
-    async function fetchSavedData() {
-      console.log("in fetch data")
-
-      // TODO add expires in functionality from tut
-
-      if (window.location.hash) {
-        const { access_token, expires_in, token_type } = getReturnedParamsFromSpotifyAuth(window.location.hash);
-        setAccessToken(access_token);
-        localStorage.setItem('accessToken', access_token);
-      }
-      console.log(accessToken);
-      try {
-        const params = {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          }
-        };
-    
-        // Clear userData before adding new data
-        setUserData([]);
-    
-        // TODO add try catch handling for each fetch statement
-        // TODO add load state until everything is parsed 
-
-        // Parsing for tracks
-        const response = await fetch("https://api.spotify.com/v1/me/tracks", params);
-        const data = await response.json();
-        // Process the retrieved data here
-        console.log(data);
-        parseTrackData(data.items);
-    
-        const albumResponse = await fetch("https://api.spotify.com/v1/me/albums", params);
-        const albumData = await albumResponse.json();
-        parseAlbumData(albumData.items);
-    
-        const episodeResponse = await fetch("https://api.spotify.com/v1/me/episodes", params);
-        const episodeData = await episodeResponse.json();
-        console.log(episodeData);
-        parseEpisodeData(episodeData.items);
-
-        console.log("userdata:");
-        console.log(userData);
-      } catch (error) {
-        console.log("error caught");
-        console.log(error); 
-      }
-    }
 
     // parse string to get the access token from spotify
     const getReturnedParamsFromSpotifyAuth = (hash : any) => {
