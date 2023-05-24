@@ -111,8 +111,7 @@ function SearchPage(){
       setIsLoading(false);
     }
 
-   
-
+  
     function parseTrackData(data: any) {
       console.log("Parsing track data");
       console.log(data);
