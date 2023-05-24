@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import axios from "axios";
-
 
 
 //TODO add is loading 
@@ -15,7 +13,7 @@ function SearchPage(){
     const [filteredUserData, setFilteredUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
     const [searchParam, setSearchParam] = useState("");
     const [userData, setUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
-
+    const [isLoading, setIsLoading] = useState(true);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target;
@@ -46,12 +44,14 @@ function SearchPage(){
       console.log("ACCESS TOKEN ON FIRST REFRESH");
       console.log(accessToken)
       fetchSavedData();
+      setIsLoading(true);
 
     }, [accessToken]);
 
 //    fetch the user data from spotify endpoint
     async function fetchSavedData() {
       console.log("in fetch data")
+      setIsLoading(true);
 
       // TODO add expires in functionality from tut
 
@@ -98,6 +98,7 @@ function SearchPage(){
         console.log("error caught");
         console.log(error); 
       }
+      setIsLoading(false);
     }
 
     // parse string to get the access token from spotify
@@ -209,43 +210,39 @@ function SearchPage(){
   }
 
     return(
-      <div>
-          {/* add form instead of div for auto refresh? */}
-          {/*  */}
-      <div
-      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
-      // onSubmit={search}
-      >
-      <label className="block text-gray-700 text-sm font-bold mb-2">
-        Search
-      </label>
-      <input
-        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        id="Search"
-        type="text"
-        placeholder="Username"
-        value={searchParam}
-        onChange={handleSearchChange}
-      />
-      <div className="flex items-center justify-between">
+<div className="black min-h-screen px-8 py-16">
 
-      </div>
+<h1 className="font-bold mb-5 text-2xl md:mb-7 md:text-3xl">Spotify Saved Search</h1>
+    <input
+      className="shadow appearance-none border border-white rounded w-full mb-4 py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-transparent focus:bg-gray-800"
+      id="Search"
+      type="text"
+      placeholder="Username"
+      value={searchParam}
+      onChange={handleSearchChange}
+    />
 
-      <div>
-        {filteredUserData.map((item, index) => (
-          <div key={index} className="bg-white shadow-md rounded p-4 mb-4">
-            <h3 className="text-gray-600">{item.name}</h3>
-            <p className="text-gray-600">{item.genres}</p>
-            <p className="text-gray-600">{item.type}</p>
-            <img src={item.images[0].url} alt={item.name} className="w-20 h-20 mt-2" />
-          </div>
-        ))}
+{isLoading && <div className='text-2xl'>Loading...</div>}
+<div className="flex flex-wrap -mx-1 md:-mx-2 lg:-mx-3">
+  {filteredUserData.map((item, index) => (
+    <div
+      key={index}
+      className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 px-1 md:px-2 lg:px-3 mb-2 md:mb-3 lg:mb-4 relative"
+    >
+      <div className="bg-gray-800 shadow-md rounded-lg p-3 flex hover:bg-gray-700 transition-colors duration-300 ease-in-out group">
+        <img src={item.images[0].url} alt={item.name} className="w-20 h-20 mt-2 mr-3" />
+        <div className="flex flex-col">
+          <h3 className="text-white font-bold">{item.name}</h3>
+          <p className="text-white">{item.genres}</p>
+          <p className="text-white">{item.type}</p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
 
-      </div>
-
-      </div>
-      </div>
-    );
+  </div>
+  );
 }
 
 export default SearchPage;
