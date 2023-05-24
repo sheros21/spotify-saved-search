@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
+// Document in the code anything you’d like to improve but didn’t get a chance to implement:
+// * implementing the PKCE flow completely instead of the implicit grant flow
+// * defining type definitions for the userdata
+// * performance optimization over parsing for duplicate data
+// * reducing code duplication over useEffect and parsing functions
+
 function SearchPage(){
   const [accessToken, setAccessToken] = useState("");
   const [filteredUserData, setFilteredUserData] = useState<{ name: string; artist: string; images: any; genre: any; type: string; }[]>([]);
