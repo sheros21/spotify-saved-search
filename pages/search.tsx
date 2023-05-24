@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 function SearchPage(){
   const [accessToken, setAccessToken] = useState("");
@@ -198,7 +199,7 @@ function SearchPage(){
         className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 px-1 md:px-2 lg:px-3 mb-2 md:mb-3 lg:mb-4 relative"
         >
           <div className="bg-gray-800 shadow-md rounded-lg p-3 flex hover:bg-gray-700 transition-colors duration-300 ease-in-out group">
-            <img src={item.images[0].url} alt={item.name} className="w-20 h-20 mt-2 mr-3" />
+            <Image src={item.images[0].url} alt={item.name} className="w-20 h-20 mt-2 mr-3" />
             <div className="flex flex-col">
               <h3 className="text-white font-bold">{item.name}</h3>
               <p className="text-white">{item.artist}</p>

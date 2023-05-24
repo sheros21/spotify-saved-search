@@ -1,5 +1,5 @@
 function LoginPage(){
-    const CLIENT_ID = CLIENT_ID;
+    const CLIENT_ID = process.env.CLIENT_ID;
     const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
     const REDIRECT_URL = "http://localhost:3000/search";
     const SPACE_DELIMITER = "%20";
