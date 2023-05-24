@@ -8,9 +8,9 @@ const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
 
 function SearchPage(){
     const [accessToken, setAccessToken] = useState("");
-    const [filteredUserData, setFilteredUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
+    const [filteredUserData, setFilteredUserData] = useState<{ name: string; artist: string; images: any; genres: any; type: string; }[]>([]);
     const [searchParam, setSearchParam] = useState("");
-    const [userData, setUserData] = useState<{ name: any; images: any; genres: any; type: string; }[]>([]);
+    const [userData, setUserData] = useState<{ name: string; artist: string; images: any; genres: any; type: string; }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +60,11 @@ function SearchPage(){
       return paramsSplitUp;
     };
 
+    async function fetchData(url: string, params: any) {
+      const response = await fetch(url, params);
+      return response.json();
+    }
+
     // fetch the user data from spotify endpoint
     async function fetchSavedData() {
       console.log("in fetch data")
@@ -87,20 +92,16 @@ function SearchPage(){
         // TODO add load state until everything is parsed 
 
         // Parsing for tracks
-        const response = await fetch("https://api.spotify.com/v1/me/tracks", params);
-        const data = await response.json();
-        // Process the retrieved data here
-        console.log(data);
-        parseTrackData(data.items);
-    
-        const albumResponse = await fetch("https://api.spotify.com/v1/me/albums", params);
-        const albumData = await albumResponse.json();
-        parseAlbumData(albumData.items);
-    
-        const episodeResponse = await fetch("https://api.spotify.com/v1/me/episodes", params);
-        const episodeData = await episodeResponse.json();
-        console.log(episodeData);
-        parseEpisodeData(episodeData.items);
+        const [tracksData, albumsData, episodesData] = await Promise.all([
+          fetchData("https://api.spotify.com/v1/me/tracks", params),
+          fetchData("https://api.spotify.com/v1/me/albums", params),
+          fetchData("https://api.spotify.com/v1/me/episodes", params)
+        ]);
+
+
+        parseTrackData(tracksData.items);
+        parseAlbumData(albumsData.items);
+        parseEpisodeData(episodesData.items);
 
         console.log("userdata:");
         console.log(userData);
@@ -111,40 +112,45 @@ function SearchPage(){
       setIsLoading(false);
     }
 
+
+    function pushToUserData(parsedData: any){
+      setUserData((prevData: any) => {
+        const updatedData = [...prevData];
+        parsedData.forEach((newItem: any) => {
+          // Check if the item already exists in userData
+          const isDuplicate = updatedData.some(
+            (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+          );
+
+          // Add the item to userData if it's not a duplicate
+          if (!isDuplicate) {
+            updatedData.push(newItem);
+          }
+        });
+        return updatedData;
+      });
+    }
+
   
-    function parseTrackData(data: any) {
-      console.log("Parsing track data");
+    function parseTrackData(data: any) {    
       console.log(data);
-    
       if (Array.isArray(data)) {
-        const newItems = data.map((item: any) => {
+        const parsedTracks = data.map((item: any) => {
           const { name, album, artists } = item.track;
           const genres = album?.genres || [];
           const images = album?.images || [];
-    
+          const artist = artists[0].name
+
           return {
             name,
+            artist,
             images,
             genres,
-            type: 'track'
+            type: 'Song'
           };
         });
-    
-        setUserData((prevData) => {
-          const updatedData = [...prevData];
-          newItems.forEach((newItem) => {
-            // Check if the item already exists in userData
-            const isDuplicate = updatedData.some(
-              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-            );
-    
-            // Add the item to userData if it's not a duplicate
-            if (!isDuplicate) {
-              updatedData.push(newItem);
-            }
-          });
-          return updatedData;
-        });
+        pushToUserData(parsedTracks)
+       
       } else {
         console.log("Invalid data format. Expected an array.");
       }
@@ -157,69 +163,39 @@ function SearchPage(){
       if (Array.isArray(data)) {
         const parsedAlbums = data.map((item: any) => {
           const { name, genres, images } = item.album;
+          const artist = item.album.artists[0].name;
           return {
             name,
+            artist,
             images,
             genres,
-            type: 'album'
+            type: 'Album'
           };
         });
-    
-        setUserData((prevData: any) => {
-          const updatedData = [...prevData];
-          parsedAlbums.forEach((newItem) => {
-            // Check if the item already exists in userData
-            const isDuplicate = updatedData.some(
-              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-            );
-    
-            // Add the item to userData if it's not a duplicate
-            if (!isDuplicate) {
-              updatedData.push(newItem);
-            }
-          });
-          return updatedData;
-        });
+        pushToUserData(parsedAlbums);
       } else {
         console.log("Invalid data format. Expected an array.");
       }
     }
 
-    
-    
     function parseEpisodeData(data: any) {
       console.log("Parsing episode data");
       console.log(data);
     
       if (Array.isArray(data)) {
         const parsedEpisodes = data.map((item: any) => {
-          const { name, genres, images } = item.episode;
-          return {
+        const { name, genres, images } = item.episode;
+        const artist = item.episode.show.name
+        return {
             name,
+            artist,
             images,
             genres,
-            type: 'episode'
+            type: 'Episode'
 
           };
         });
-
-
-    
-        setUserData((prevData: any) => {
-          const updatedData = [...prevData];
-          parsedEpisodes.forEach((newItem) => {
-            // Check if the item already exists in userData
-            const isDuplicate = updatedData.some(
-              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-            );
-    
-            // Add the item to userData if it's not a duplicate
-            if (!isDuplicate) {
-              updatedData.push(newItem);
-            }
-          });
-          return updatedData;
-        });
+        pushToUserData(parsedEpisodes);
       } else {
         console.log("Invalid data format. Expected an array.");
       }
@@ -234,7 +210,7 @@ function SearchPage(){
       className="shadow appearance-none border border-white rounded w-full mb-4 py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-transparent focus:bg-gray-800"
       id="Search"
       type="text"
-      placeholder="Username"
+      placeholder="Search"
       value={searchParam}
       onChange={handleSearchChange}
     />
@@ -250,6 +226,7 @@ function SearchPage(){
         <img src={item.images[0].url} alt={item.name} className="w-20 h-20 mt-2 mr-3" />
         <div className="flex flex-col">
           <h3 className="text-white font-bold">{item.name}</h3>
+          <p className="text-white">{item.artist}</p>
           <p className="text-white">{item.genres}</p>
           <p className="text-white">{item.type}</p>
         </div>
