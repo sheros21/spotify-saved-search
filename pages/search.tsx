@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
 
-// TODO hide these in local storage, update gitignore
-const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
-const CLIENT_SECRET = "4f28abe2fa6b4d2cb274afb4c650d38c";
-
 function SearchPage(){
   const [accessToken, setAccessToken] = useState("");
   const [filteredUserData, setFilteredUserData] = useState<{ name: string; artist: string; images: any; genre: any; type: string; }[]>([]);
