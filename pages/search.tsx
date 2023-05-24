@@ -115,100 +115,120 @@ function SearchPage(){
       return paramsSplitUp;
     };
 
-  function parseTrackData(data: any) {
-  console.log("parsing track data");
-  console.log(data);
-
-  if (Array.isArray(data)) {
-    const newItems = data.map((item: any) => {
-      const { name } = item.track;
-      const { genres, images } = item.track.album;
-
-      return {
-        name,
-        images,
-        genres,
-        type: 'track'
-      };
-    });
-
-    setUserData((prevData) => {
-      const updatedData = [...prevData];
-      newItems.forEach((newItem) => {
-        // Check if the item already exists in userData
-        const isDuplicate = updatedData.some(
-          (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
-        );
-
-        // Add the item to userData if it's not a duplicate
-        if (!isDuplicate) {
-          updatedData.push(newItem);
-        }
-      });
-      return updatedData;
-    });
-  } else {
-    console.log("Invalid data format. Expected an array.");
-  }
-}
-
+    function parseTrackData(data: any) {
+      console.log("Parsing track data");
+      console.log(data);
     
-  function parseAlbumData(data: any) {
-    console.log("parsing data");
-    console.log(data);
-  
-    if (Array.isArray(data)) {
-      data.forEach((item: any) => {
-        const { name, genres, images } = item.album;
-  
-        // Check if the item already exists in userData
-        const isDuplicate = userData.some((existingItem) => existingItem.name === name);
-  
-        // Add the item to userData if it's not a duplicate
-        if (!isDuplicate) {
-          const newItem = {
+      if (Array.isArray(data)) {
+        const newItems = data.map((item: any) => {
+          const { name, album, artists } = item.track;
+          const genres = album?.genres || [];
+          const images = album?.images || [];
+    
+          return {
+            name,
+            images,
+            genres,
+            type: 'track'
+          };
+        });
+    
+        setUserData((prevData) => {
+          const updatedData = [...prevData];
+          newItems.forEach((newItem) => {
+            // Check if the item already exists in userData
+            const isDuplicate = updatedData.some(
+              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+            );
+    
+            // Add the item to userData if it's not a duplicate
+            if (!isDuplicate) {
+              updatedData.push(newItem);
+            }
+          });
+          return updatedData;
+        });
+      } else {
+        console.log("Invalid data format. Expected an array.");
+      }
+    }
+    
+    function parseAlbumData(data: any) {
+      console.log("Parsing album data");
+      console.log(data);
+    
+      if (Array.isArray(data)) {
+        const parsedAlbums = data.map((item: any) => {
+          const { name, genres, images } = item.album;
+          return {
             name,
             images,
             genres,
             type: 'album'
           };
-  
-          setUserData((prevData: any) => [...prevData, newItem]);
-        }
-      });
-    } else {
-      console.log("Invalid data format. Expected an array.");
+        });
+    
+        setUserData((prevData: any) => {
+          const updatedData = [...prevData];
+          parsedAlbums.forEach((newItem) => {
+            // Check if the item already exists in userData
+            const isDuplicate = updatedData.some(
+              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+            );
+    
+            // Add the item to userData if it's not a duplicate
+            if (!isDuplicate) {
+              updatedData.push(newItem);
+            }
+          });
+          return updatedData;
+        });
+      } else {
+        console.log("Invalid data format. Expected an array.");
+      }
     }
-  }
 
-  function parseEpisodeData(data: any) {
-    console.log("parsing data");
-    console.log(data);
-  
-    if (Array.isArray(data)) {
-      data.forEach((item: any) => {
-        const { name, genres, images } = item.episode;
-  
-        // Check if the item already exists in userData
-        const isDuplicate = userData.some((existingItem) => existingItem.name === name);
-  
-        // Add the item to userData if it's not a duplicate
-        if (!isDuplicate) {
-          const newItem = {
+    
+    
+    function parseEpisodeData(data: any) {
+      console.log("Parsing episode data");
+      console.log(data);
+    
+      if (Array.isArray(data)) {
+        const parsedEpisodes = data.map((item: any) => {
+          const { name, genres, images } = item.episode;
+          return {
             name,
             images,
             genres,
             type: 'episode'
-          };
-  
-          setUserData((prevData: any) => [...prevData, newItem]);
-        }
-      });
-    } else {
-      console.log("Invalid data format. Expected an array.");
-    }
-  }
 
+          };
+        });
+
+
+    
+        setUserData((prevData: any) => {
+          const updatedData = [...prevData];
+          parsedEpisodes.forEach((newItem) => {
+            // Check if the item already exists in userData
+            const isDuplicate = updatedData.some(
+              (existingItem) => existingItem.name === newItem.name && existingItem.type === newItem.type
+            );
+    
+            // Add the item to userData if it's not a duplicate
+            if (!isDuplicate) {
+              updatedData.push(newItem);
+            }
+          });
+          return updatedData;
+        });
+      } else {
+        console.log("Invalid data format. Expected an array.");
+      }
+    }
+    
+    
     return(
 <div className="black min-h-screen px-8 py-16">
 
