@@ -1,5 +1,4 @@
 function LoginPage(){
-    //TODO hide these in local storage, update gitignore
     const CLIENT_ID = "cf13126c4938401daf4e9e6dbefe887e";
     const SPOTIFY_AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
     const REDIRECT_URL = "http://localhost:3000/search";
@@ -11,7 +10,6 @@ function LoginPage(){
         window.location = `${SPOTIFY_AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL}&scope=${SCOPES_URL_PARAM}&response_type=token&show_dialog=true` as any;
     };
 
-    //TODO import better font later
     return (
         <div className="bg-gradient-to-b from-gray-700 to-gray-900 min-h-screen">
             <div className="flex justify-center items-center min-h-screen">
